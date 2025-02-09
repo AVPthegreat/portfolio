@@ -233,15 +233,17 @@
 
     <script>
       const countEl = document.getElementById("count");
-      countvisits();
-
+      
       function countvisits() {
-        fetch('https://api.countapi.xyz/update/avpthegreat/mouse/?amount=1')
+          fetch('http://localhost:3000/visitor')
           .then((res) => res.json())
           .then((res) => {
-            countEl.innerHTML = res.value;
-          });
-      }
+              countEl.innerHTML = res.visits; // Changed from res.value to res.visits
+            })
+            .catch((err) => console.error("Error fetching visit count:", err));
+        }
+        countvisits();
+
     </script>
     </section>
     <!-- footer section start -->
