@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Popular YouTube Videos</title>
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f9fafb;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px 0;
+        }
+        h1{
+            font-size: 65px;
+        }
+
+        h2, h3 {
+            font-weight: 700;
+            color: #2e2e2e;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .stats {
+            margin-bottom: 30px;
+            font-size: 18px;
+            background-color: #f1f3f8;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            color: #555;
+            font-weight: 500;
+        }
+
+        .video-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            justify-items: center;
+        }
+
+        .video {
+            background-color: #fff;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .video:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        iframe {
+            border: none;
+            border-radius: 8px;
+        }
+
+        .video p {
+            padding: 15px;
+            background-color: #f8f9fa;
+            margin-top: 0;
+            font-size: 18px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .video-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding: 10px;
+            font-size: 15px;
+            color: #999;
+        }
+
+        .video-stats span {
+            display: flex;
+            align-items: center;
+        }
+
+        .video-stats span svg {
+            margin-right: 10px;
+            fill: #007bff;
+            transition: fill 0.3s ease;
+        }
+
+        .video-stats span:hover svg {
+            fill: #0056b3;
+        }
+
+        .video-stats span strong {
+            color: #555;
+        }
+
+        .video-stats span svg:hover {
+            cursor: pointer;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px 20px;
+            }
+
+            .stats {
+                font-size: 16px;
+                padding: 15px;
+            }
+        }
+
+        /* Accent Color for the Channel Stats */
+        .channel-stats-highlight {
+            color: #007bff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>MY YOUTUBE CHANNEL</h1>
+        <div id="channelStats" class="stats"></div>
+        <h3>Most Popular Videos</h3>
+        <div id="videos" class="video-container"></div>
+    </div>
+
+    <script>
+        const API_KEY = "AIzaSyDE67tSa71HGuhD1hI5kWldl7rCeV5Q3u8";  // Replace with your YouTube API Key
+        const CHANNEL_ID = "UCc_FxkVCgh3JGBb942ge42g";  // Replace with your YouTube Channel ID
+
+        // Fetch Channel Stats
+        async function fetchChannelStats() {
+            const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${CHANNEL_ID}&key=${API_KEY}`;
+            try {
+                let response = await fetch(url);
+                let data = await response.json();
+                let stats = data.items[0].statistics;
+
+                document.getElementById("channelStats").innerHTML = `
+                    <p><strong>Subscribers:</strong> <span class="channel-stats-highlight">${stats.subscriberCount}</span> | 
+                    <strong>Videos:</strong> ${stats.videoCount} | 
+                    <strong>Total Views:</strong> ${stats.viewCount}</p>
+                `;
+            } catch (error) {
+                console.error("Error fetching channel stats:", error);
+            }
+        }
+
+        // Fetch Most Popular Videos
+        async function fetchPopularVideos() {
+            const url = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${CHANNEL_ID}&part=snippet&type=video&order=viewCount&maxResults=6`;
+            try {
+                let response = await fetch(url);
+                let data = await response.json();
+                displayVideos(data.items);
+            } catch (error) {
+                console.error("Error fetching videos:", error);
+            }
+        }
+
+        // Fetch Video Details (Views, Likes, Comments)
+        async function fetchVideoDetails(videoId) {
+            const url = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${API_KEY}`;
+            try {
+                let response = await fetch(url);
+                let data = await response.json();
+                return data.items[0].statistics;
+            } catch (error) {
+                console.error("Error fetching video details:", error);
+                return null;
+            }
+        }
+
+        // Display Videos with Stats
+        async function displayVideos(videos) {
+            let videosContainer = document.getElementById("videos");
+            videosContainer.innerHTML = "";
+
+            for (let video of videos) {
+                let videoId = video.id.videoId;
+                let videoTitle = video.snippet.title;
+                let stats = await fetchVideoDetails(videoId);
+
+                let videoElement = `
+                    <div class="video">
+                        <iframe width="350" height="200" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>
+                        <p><strong>${videoTitle}</strong></p>
+                        <div class="video-stats">
+                            <span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16"><path d="M8 3.5c-3.41 0-6.288 1.975-7.928 4.55-.178.272-.268.544-.268.85 0 .306.09.578.268.85 1.64 2.575 4.518 4.55 7.928 4.55s6.288-1.975 7.928-4.55c.178-.272.268-.544.268-.85 0-.306-.09-.578-.268-.85-1.64-2.575-4.518-4.55-7.928-4.55zM8 6c2.21 0 4 1.79 4 4s-1.79 4-4 4-4-1.79-4-4 1.79-4 4-4z"/></svg> ${stats.viewCount}</span>
+                            <span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-hand-thumbs-up" viewBox="0 0 16 16"><path d="M6.5 0a.5.5 0 0 0-.5.5V3h-1.5a1 1 0 0 0-1 1V9a1 1 0 0 0 1 1h1.5v5.5a.5.5 0 0 0 .5.5h5.5a.5.5 0 0 0 .5-.5V11h1.5a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H12V.5a.5.5 0 0 0-.5-.5h-5zM8 7a3 3 0 0 1 3 3v2H5V9a3 3 0 0 1 3-3h5a3 3 0 0 1 3 3v1h-1v6H9V8z"/></svg> ${stats.likeCount}</span>
+                            <span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat" viewBox="0 0 16 16"><path d="M2 2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2zm0 1h12a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/></svg> ${stats.commentCount}</span>
+                        </div>
+                    </div>
+                `;
+
+                videosContainer.innerHTML += videoElement;
+            }
+        }
+
+        // Initialize
+        fetchChannelStats();
+        fetchPopularVideos();
+    </script>
+
+</body>
+</html>

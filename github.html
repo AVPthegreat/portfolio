@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Portfolio</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-calendar/dist/github-calendar-responsive.css">
+    <script src="https://cdn.jsdelivr.net/npm/github-calendar@latest/dist/github-calendar.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h2 {
+            margin-bottom: 20px;
+            font-size: 65px;
+            color: #222;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .calendar {
+            margin-bottom: 30px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .repo-list, .gist-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            padding: 0;
+        }
+
+        .repo-list li, .gist-list li {
+            list-style: none;
+            background: #fff;
+            padding: 15px;
+            width: 45%;
+            border-radius: 8px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .repo-list li:hover, .gist-list li:hover {
+            transform: translateY(-3px);
+        }
+
+        a {
+            text-decoration: none;
+            color: #0073e6;
+            font-weight: bold;
+        }
+
+        a:hover {
+            color: #005bb5;
+        }
+        @media (max-width: 600px) {
+            .repo-list li, .gist-list li {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>My GitHub Activity</h1>
+        <div class="calendar">Loading contributions...</div>
+
+        <h2>My GitHub Repositories</h2>
+        <ul id="repo-list" class="repo-list">Loading repositories...</ul>
+
+        <h2>My GitHub Gists</h2>
+        <ul id="gist-list" class="gist-list">Loading gists...</ul>
+    </div>
+
+    <script>
+        const username = "avpthegreat";  // Replace with your GitHub username
+
+// Load GitHub Activity Graph
+GitHubCalendar(".calendar", username, { responsive: true });
+
+// Fetch and display GitHub Repositories
+fetch(`https://api.github.com/users/avpthegreat/repos`)
+    .then(response => response.json())
+    .then(data => {
+        const repoList = document.getElementById("repo-list");
+        repoList.innerHTML = ""; // Clear loading text
+        data.forEach(repo => {
+            const year = new Date(repo.created_at).getFullYear(); // Extract year from creation date
+            const listItem = document.createElement("li");
+            listItem.innerHTML = `<a href="${repo.html_url}" target="_blank">${repo.name} (${year})</a>`;
+            repoList.appendChild(listItem);
+        });
+    })
+    .catch(error => console.error("Error fetching repos:", error));
+
+// Fetch and display GitHub Gists
+fetch(`https://api.github.com/users/avpthegreat/gists`)
+    .then(response => response.json())
+    .then(data => {
+        const gistList = document.getElementById("gist-list");
+        gistList.innerHTML = ""; // Clear loading text
+        data.forEach(gist => {
+            const year = new Date(gist.created_at).getFullYear(); // Extract year from creation date
+            const listItem = document.createElement("li");
+            listItem.innerHTML = `<a href="${gist.html_url}" target="_blank">${gist.description || "Untitled Gist"} (${year})</a>`;
+            gistList.appendChild(listItem);
+        });
+    })
+    .catch(error => console.error("Error fetching gists:", error));
+
+    </script>
+
+</body>
+</html>
